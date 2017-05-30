@@ -1,0 +1,10 @@
+{
+    "botnick": "examplenick",
+    "server": "your.znc.address.goes.here.net",
+    "port": "",
+    "admins": ["user@example.net"],
+    "server_password": "example/network:suchapass123"
+    "language": "en"
+    "webpanel": ""
+    "znchost": ""
+}

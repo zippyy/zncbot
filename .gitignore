@@ -1,0 +1,6 @@
+__pycache__
+cache.json
+config.json
+requestthrottle.json
+zncuserlist.json
+zncusersdb.json
