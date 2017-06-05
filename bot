@@ -169,7 +169,7 @@ def cmd_approve(message, znc_username):
         if_user_match = znc_username_string.lower() == znc_username_real.lower()
         user_state = zncusersdb["users"][znc_username_string.lower()]["state"]
         if if_user_match and user_state == "Pending":
-            sendraw("ZNC *controlpanel set bindhost {0} {1}\n".format(str(znc_username_real), "suchznc.net"))
+            sendraw("ZNC *controlpanel set bindhost {0} {1}\n".format(str(znc_username_real), config['znchost']))
             sendmsg(message['replyto'], message['nick'] +": {0} {1} {2}".format(i18n['User'], str(znc_username_string.lower()),i18n['has been approved!']))
             zncusersdb["users"][str(cmd_args[1]).lower()]["status_date"] = str(time.ctime(int(time.time())))
             zncusersdb["users"][str(cmd_args[1]).lower()]["status_changed_by"] = str(message['nick'])
@@ -231,14 +231,17 @@ def cmd_adduser(message, znc_username):
         with open('zncusersdb.json', 'w') as f:
             json.dump(zncusersdb, f, indent=2)
 
-def cmd_deluser(message, znc_username):
+def cmd_deluser(message, znc_username, args):
     znc_username_string = ''.join(znc_username)
     try:
         if znc_username_string.lower() in zncuserlist["main"]:
             zncuserlist["main"].remove(znc_username_string.lower())
-            sendmsg(message['replyto'], message['nick'] +": {0} {1} {2}".format(i18n['User'], str(znc_username_string.lower()), i18n['has been manually deleted.']))
+            sendmsg(message['replyto'], message['nick'] +": {0} {1} {2}".format(i18n['User'], str(znc_username_string.lower()), i18n['has been deleted.']))
             with open("zncuserlist.json", 'w') as n:
                 json.dump(zncuserlist, n, indent=2)
+            if args == '-delznc':
+                znc_username_real = zncusersdb["users"][znc_username_string.lower()]["real_username"]
+                sendraw("ZNC *controlpanel DelUser" + " " + str(znc_username_real) + "\n")
         else:
             sendmsg(message['replyto'], message['nick'] +": {0} {1} {2}".format(i18n['Error: User'], str(znc_username_string.lower()),i18n["either has already been deleted, or wasn't found."]))
     except KeyError:
@@ -319,9 +322,16 @@ def zncrequest(message, cmd_args):
     sendmsg(message['nick'], "{0} {1}".format(i18n['Username:'], nick_formatted2))
     sendmsg(message['nick'], "{0} {1}".format(i18n['Password:'], key))
     sendmsg(message['nick'], "{0}".format(i18n['(It is *highly* recommended to change this generated password, later on.)']))
-    sendmsg(message['nick'], "{0} https://suchznc.net/webpanel".format(i18n['Webpanel:']))
-    sendmsg(message['nick'], "IRC: suchznc.net, port 6697 for SSL, or 6667 for standard.")
-    sendmsg(message['nick'], "({0}, cphfvh6z4nrn6xnw.onion)".format(i18n['This ZNC service has a Tor hidden service']))
+    sendmsg(message['nick'], "{0} {1}".format(i18n['Webpanel:'], config['webpanel']))
+    if len(config['zncircport']) <= 0:
+        sendmsg(message['nick'], "IRC: {0}, port {1} for SSL, or {2} for standard.".format(config['zncircserver'], config['zncssl'], config['zncstandard']))
+    elif len(config['zncircportisssl']) > 0:
+        if config["zncircportisssl"] == "True":
+            sendmsg(message['nick'], "IRC: {0}, port {1} (SSL is supported)".format(config['zncircserver'], config['zncircport']))
+        elif config["zncircportisssl"] == "False":
+            sendmsg(message['nick'], "IRC: {0}, port {1} (SSL isn't supported)".format(config['zncircserver'], config['zncircport']))
+    if len(config['torhs']) >= 2:
+        sendmsg(message['nick'], "({0}, {1})".format(i18n['This ZNC service has a Tor hidden service'], config['torhs']))
     sendmsg(message['nick'], "{0}".format(i18n['Note: While your account is created, you cannot connect to any IRC network until an admin approves your account!']))
     sendmsg(message['nick'], "{0} nolsen!".format(i18n["Once approved, you'll be able to connect to any IRC network, approvals are usually quick, but if not, ping"]))
     zncusersdb["users"][nick_formatted2.lower()] = {}
@@ -578,8 +588,13 @@ while True:
                 pass
             if len(cmd_args) < 2:
                 sendmsg(message['replyto'], message['nick'] +": Syntax: !deluser \x1fusername\x1f")
+                sendmsg(message['replyto'], message['nick'] +": (Add -delznc to the end to delete from the ZNC server)")
             else:
                 znc_username = cmd_args[1]
+                try:
+                    args = cmd_args[2]
+                except:
+                    args = "null"
                 command = cmd_deluser
 
         if 'userinfo' == command_word:
@@ -609,6 +624,11 @@ while True:
 
         if not command is None:
             if access(message):
-                command(message, cmd_args[1:])
+                try:
+                    command(message, cmd_args[1], args)
+                except TypeError:
+                    command(message, cmd_args[1:])
+                except NameError:
+                    command(message, cmd_args[1:])
             else:
                 sendmsg(message['replyto'], message['nick'] +": Permission Denied")
