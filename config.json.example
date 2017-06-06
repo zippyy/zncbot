@@ -12,5 +12,6 @@
     "zncssl": "",
     "zncstandard": "",
     "zncircport": "",
-    "zncircportisssl": ""
+    "zncircportisssl": "",
+    "use_identify-msg": ""
 }

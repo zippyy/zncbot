@@ -30,11 +30,12 @@
   "Webpanel:": "Webpanel:",
   "This ZNC service has a Tor hidden service": "This ZNC service has a Tor hidden service",
   "Note: While your account is created, you cannot connect to any IRC network until an admin approves your account!": "Note: While your account is created, you cannot connect to any IRC network until an admin approves your account!",
-  "Once approved, you'll be able to connect to any IRC network, approvals are usually quick, but if not, ping": "Once approved, you'll be able to connect to any IRC network, approvals are usually quick, but if not, ping",
+  "Once approved, you'll be able to connect to any IRC network, approvals are usually quick, but if not, ping an admin!": "Once approved, you'll be able to connect to any IRC network, approvals are usually quick, but if not, ping an admin!",
   "Please join the channel": "Por favor unirse al canal",
   "to use !request.": "usar !request.",
   "Error: You already have an account!": "Error: ¡Ya tienes una cuenta!",
   "Syntax: !request": "Sintaxis: !request",
   "username": "usuario",
-  "Error: Please wait 24-hours before requesting again.": "Error: Please wait 24-hours before requesting again."
+  "Error: Please wait 24-hours before requesting again.": "Error: Please wait 24-hours before requesting again.",
+  "Error: You need to identify to services in order to": "You need to identify to services in order to"
 }
