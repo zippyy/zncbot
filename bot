@@ -425,12 +425,11 @@ else:
 
 atexit.register(ircsock.close)
 
-sendraw(irc_command("USER", config['botnick'], config['botnick'], config['botnick'], 'SuchZNC registeration & utility bot'))
+sendraw(irc_command("USER", config['zncuser'], config['zncuser'], config['zncuser'], 'SuchZNC registeration & utility bot'))
 
-if len(config['server_password']) != 0:
-    sendraw(irc_command("PASS", config['server_password']))
+sendraw(irc_command("NICK", config['zncuser']))
 
-sendraw(irc_command("NICK", config['botnick']))
+sendraw(irc_command("PASS", "{0}/{1}:{2}\n".format(config['zncuser'], config['network'], config['zncpass'])))
 
 lines = []
 while True:
@@ -457,9 +456,13 @@ while True:
     if message['command'] == 'PING':
         ping(' '.join(message['args']))
 
-    elif message['command'] == '437' or message['command'] == '433':
-        logging.error("Botnick {0} is unavailable.".format(config['botnick']))
-        sys.exit("")
+    #elif message['command'] == '437' or message['command'] == '433':
+    #    logging.error("botnick {0} is unavailable.".format(config['botnick']))
+    #    sys.exit("")
+
+    elif message['command'] == '376':
+        if config['use_identify-msg'] == "True":
+            sendraw("znc *send_raw server znc {0} cap req identify-msg\n".format(config['network']))
 
     elif message['command'] == "JOIN":
         if len(cache['channel']) >= 1:
