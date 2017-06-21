@@ -636,10 +636,12 @@ while True:
         if not command is None:
             if access(message):
                 try:
-                    command(message, cmd_args[1:], args)
+                    command(message, cmd_args[1], args)
                 except TypeError:
                     command(message, cmd_args[1:])
                 except NameError:
+                    command(message, cmd_args[1:])
+                except IndexError:
                     command(message, cmd_args[1:])
             else:
                 sendmsg(message['replyto'], message['nick'] +": Permission Denied")
