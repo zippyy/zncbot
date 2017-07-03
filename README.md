@@ -4,12 +4,26 @@ A ZNC bot capable of handling registeration requests of new ZNC accounts, and mo
 ## Features
 * The ability to request for a ZNC account (!request)
 * The ability to approve or deny new ZNC account requests (!approve or !deny)
+* A complete, email-less, system. Instead of requiring a provided email to signup, the system works by setting new users' bindhost to 8.8.8.8, to prevent them connecting, until an admin approves.
 * The ability to delete ZNC accounts in the IRC channel (using the -delznc argument in !deluser)
 * Muti-language support, including the ability to set the specified language for each indiviual user (!userlang for indiviual language)
 
 ## Requirements
 * Python 3.4 or newer
 * Admin access to a working ZNC server
+
+## List of admin commands, and what they do
+**!approve** - Approves the specified ZNC username; This will set their bindhost to the proper bindhost in the config, and allow them to connect to their IRC networks.
+<br>
+**!deny** - Denies the request of a ZNC username; Once denied, this will instantly delete their ZNC account.
+<br>
+**!userinfo** - Lists the information about the ZNC user, usually information about registeration, including when did they register, what host did they use, etc.
+<br>
+**!deluser** - Deletes the ZNC user from the bot's database, and if -delznc is specified, it will also delete the ZNC user's account.
+<br>
+**!adduser** - Manually adds the ZNC username to the bot's database; Useful if you created an account on the ZNC server, and not through !request, and prevents from other users to request that username.
+<br>
+**!restart** - This will restart the bot. (Note: Sometimes, this *might* fail, for some reason, and requires you start the bot manually again.)
 
 ## Configuration help
 **zncuser** - The username of the ZNC account for the bot to use.
@@ -49,6 +63,11 @@ A ZNC bot capable of handling registeration requests of new ZNC accounts, and mo
 * Make sure every ZNC user have "DenySetBindHost" enabled, otherwise approving would be useless.
 * Make sure the ZNC bot have Admin privileges on the ZNC server (Duh)
 * In order for the bot to even work...at all, it requires the controlpanel module to be enabled. This will be used to basically do everything it needs to do, like create new accounts, set bindhosts, etc.
+
+## Roadmap/To-do List (Always looking for contributors and help!)
+* Create a pending command, which would list accounts that are still "pending" or waiting for their account to be approved or denied.
+* A better online/offline tracker, this is useful to check if a user is online or connected to their account, in !userinfo.
+* MORE LANGUAGES! (Including replacing the poorly translated spanish version.)
 
 ## Still need help? Need to contact?
 Join the IRC channel #SuchZNC @ freenode for help, bug reporting, or contributions, or whatever the case may be.
