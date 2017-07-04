@@ -177,9 +177,6 @@ def cmd_approve(message, znc_username):
             zncusersdb["users"][znc_username_string.lower()]["state"] = "Approved"
             with open('zncusersdb.json', 'w') as f:
                 json.dump(zncusersdb, f, indent=2)
-            zncuserlist["main"].append(znc_username_string.lower())
-            with open("zncuserlist.json", 'w') as n:
-                json.dump(zncuserlist, n, indent=2)
 
         elif if_user_match and user_state == "Approved":
             sendmsg(message['replyto'], message['nick'] +": {0} {1} {2}".format(i18n['error_user'], str(znc_username_string.lower()), i18n['already_approved']))
@@ -199,7 +196,7 @@ def cmd_adduser(message, znc_username):
         else:
             zncusersdb["users"][str(znc_username_string).lower()] = {}
             zncusersdb["users"][str(znc_username_string).lower()]["state"] = "Approved"
-            zncusersdb["users"][str(znc_username_string).lower()]["real_username"] = str(znc_username_string.lower())
+            zncusersdb["users"][str(znc_username_string).lower()]["real_username"] = str(znc_username_string)
             zncusersdb["users"][str(znc_username_string).lower()]["nick_registered_as"] = "N/A"
             zncusersdb["users"][str(znc_username_string).lower()]["userhost_registered_as"] = "N/A"
             zncusersdb["users"][str(znc_username_string).lower()]["date_registered"] = "N/A"
@@ -237,9 +234,12 @@ def cmd_deluser(message, znc_username, args):
     try:
         if znc_username_string.lower() in zncuserlist["main"]:
             zncuserlist["main"].remove(znc_username_string.lower())
+            zncusersdb["users"][znc_username_string.lower()]["state"] = "Denied"
             sendmsg(message['replyto'], message['nick'] +": {0} {1} {2}".format(i18n['user'], str(znc_username_string.lower()), i18n['OK_deleted']))
             with open("zncuserlist.json", 'w') as n:
                 json.dump(zncuserlist, n, indent=2)
+            with open('zncusersdb.json', 'w') as f:
+                json.dump(zncusersdb, f, indent=2)
             if args == '-delznc':
                 znc_username_real = zncusersdb["users"][znc_username_string.lower()]["real_username"]
                 sendraw("ZNC *controlpanel DelUser" + " " + str(znc_username_real) + "\n")
@@ -301,6 +301,9 @@ def cmd_deny(message, znc_username):
             zncusersdb["users"][str(cmd_args[1]).lower()]["status_changed_by"] = str(message['nick'])
             with open('zncusersdb.json', 'w') as f:
                 json.dump(zncusersdb, f, indent=2)
+            zncuserlist["main"].remove(znc_username_string.lower())
+            with open("zncuserlist.json", 'w') as n:
+                json.dump(zncuserlist, n, indent=2)
 
         elif if_user_match and user_state == "Approved":
             sendmsg(message['replyto'], message['nick'] +": {0} {1} {2}".format(i18n['error_user'], str(znc_username_string.lower()), i18n['already_approved']))
@@ -353,8 +356,12 @@ def zncrequest(message, cmd_args):
     requestthrottle[message['host']] = int(time.time())
     with open('requestthrottle.json', 'w') as o:
         json.dump(requestthrottle, o, indent=2)
+    zncuserlist["main"].append(nick_formatted2.lower())
+    with open("zncuserlist.json", 'w') as n:
+        json.dump(zncuserlist, n, indent=2)
 
 def cmd_request(message, cmd_args):
+    print(cmd_args)
     if "#" not in message['replyto']:
         sendmsg(message['nick'], "{0} #SuchZNC {1}".format(i18n['join_channel_error'], i18n['to_use_request_command']))
     elif user_registered == '-':
@@ -363,8 +370,15 @@ def cmd_request(message, cmd_args):
         sendmsg(message['replyto'], message['nick'] +": {0}".format(i18n['error_already_have_account']))
     elif len(cmd_args) <= 0:
         sendmsg(message['replyto'], message['nick'] +": {0} \x1f{1}\x1f".format(i18n['request_syntax'], i18n['username']))
-    elif message['userhost'] in requestthrottle:
+    elif message['userhost'] in requestthrottle: # This 'elif' is for backwards compatibility with older databases.
         if time.time() < requestthrottle[message['userhost']] + 86400:
+            sendmsg(message['replyto'], message['nick'] +": {0}".format(i18n['requestthrottle_error']))
+        elif time.time() < requestthrottle[message['userhost']] + 86400:
+            sendmsg(message['replyto'], message['nick'] +": {0}".format(i18n['requestthrottle_error']))
+        else:
+            zncrequest(message, cmd_args)
+    elif message['host'] in requestthrottle:
+        if time.time() < requestthrottle[message['host']] + 86400:
             sendmsg(message['replyto'], message['nick'] +": {0}".format(i18n['requestthrottle_error']))
         elif time.time() < requestthrottle[message['host']] + 86400:
             sendmsg(message['replyto'], message['nick'] +": {0}".format(i18n['requestthrottle_error']))
@@ -372,11 +386,11 @@ def cmd_request(message, cmd_args):
             zncrequest(message, cmd_args)
     elif cmd_args[0].lower() in zncuserlist['main']:
         sendmsg(message['replyto'], message['nick'] +": Error: The username {0} is already taken!".format(cmd_args[0]))
-    elif cmd_args[0].lower() in zncusersdb['users']:
-         if zncusersdb["users"][str(cmd_args[0]).lower()]["state"] == "Pending" or zncusersdb["users"][str(cmd_args[0]).lower()]["state"] == "Approved":
-             sendmsg(message['replyto'], message['nick'] +": Error: The username {0} is already taken!".format(cmd_args[0]))
-         else:
-             zncrequest(message, cmd_args)
+    #elif cmd_args[0].lower() in zncusersdb['users']:
+         #if zncusersdb["users"][str(cmd_args[0]).lower()]["state"] == "Pending" or zncusersdb["users"][str(cmd_args[0]).lower()]["state"] == "Approved":
+             #sendmsg(message['replyto'], message['nick'] +": Error: The username {0} is already taken!".format(cmd_args[0]))
+         #else:
+             #zncrequest(message, cmd_args)
 
     elif " " in cmd_args[0] or "/" in cmd_args[0] or "[" in cmd_args[0] or "]" in cmd_args[0] or "|" in cmd_args[0]:
         sendmsg(message['replyto'], message['nick'] +": Error: Please enter a more valid username.")
@@ -495,21 +509,22 @@ while True:
             continue
 
         #if '***' == notice_args[0]:
-        #    if message['nick'] == '*status':
-        #        if notice_args[2] == "attached":
-        #            zncusersdb["users"][str(notice_args[1]).lower()]["isonline"] = "True"
-        #            with open('zncusersdb.json', 'w') as b:
-        #                json.dump(zncusersdb, b, indent=2)
-        #            try:
-        #                zncusersdb["users"][str(notice_args[1]).lower()]["onlinecount"] = zncusersdb["users"][str(notice_args[1]).lower()]["onlinecount"] + 1
-        #            except KeyError:
-        #                zncusersdb["users"][str(notice_args[1]).lower()]["onlinecount"] = 1
-        #            with open('zncusersdb.json', 'w') as b:
-        #                json.dump(zncusersdb, b, indent=2)
-        #            if zncusersdb["users"][str(notice_args[1]).lower()]["onlinecount"] >= 1:
-        #                zncusersdb["users"][str(notice_args[1]).lower()]["isonline"] = "True"
-        #                with open('zncusersdb.json', 'w') as b:
-        #                    json.dump(zncusersdb, b, indent=2)
+            #if message['nick'] == '*status':
+                #if notice_args[2] == "attached":
+                    #zncusersdb["users"][str(notice_args[1]).lower()]["isonline"] = "True"
+                    #zncusersdb["users"][str(notice_args[1]).lower()["lastlogin"] = int(time.time())
+                    #with open('zncusersdb.json', 'w') as b:
+                        #json.dump(zncusersdb, b, indent=2)
+                    #try:
+                        #zncusersdb["users"][str(notice_args[1]).lower()]["onlinecount"] = zncusersdb["users"][str(notice_args[1]).lower()]["onlinecount"] + 1
+                    #except KeyError:
+                        #zncusersdb["users"][str(notice_args[1]).lower()]["onlinecount"] = 1
+                                #with open('zncusersdb.json', 'w') as b:
+                                    #json.dump(zncusersdb, b, indent=2)
+                    #if zncusersdb["users"][str(notice_args[1]).lower()]["onlinecount"] >= 1:
+                        #zncusersdb["users"][str(notice_args[1]).lower()]["isonline"] = "True"
+                        #with open('zncusersdb.json', 'w') as b:
+                            #json.dump(zncusersdb, b, indent=2)
 
                 #elif notice_args[2] == "detached":
                 #    try:
