@@ -9,7 +9,7 @@ A ZNC bot capable of handling registeration requests of new ZNC accounts, and mo
 * Muti-language support, including the ability to set the specified language for each indiviual user (!userlang for indiviual language)
 
 ## Setup requirements
-* Python 3.4 (or newer)
+* Python 3.6 or newer (ANYTHING OLDER THAN PYTHON 3.6 WILL NOT WORK)
 * Administrator access to a functional ZNC server
 * Make sure to create a "cloneuser" account, this account will be used for the bot to clone for each new user, that way, you can specify certain stuff for each new user, like a custom realname, or quit message, or whatever the case may be.
 * Make sure every ZNC user have "DenySetBindHost" enabled, otherwise approving would be useless.
@@ -65,6 +65,8 @@ A ZNC bot capable of handling registeration requests of new ZNC accounts, and mo
 **use_identify-msg** - (Requires the IRC network to support it, and the bot to have send_raw module enabled) If set to "True" (Including the quotes), the bot will require users to be identified to services.
 
 **reqchan** - Specifies the channel the bot will be using to receive ZNC requests.
+
+**disableapproval** - (NOT RECOMMENDED TO ENABLE, UNLESS YOU HAVE SOMETHING ELSE TO REPLACE THIS) Disables the requirement for an account to be approved. Set to "True" if you really need to disable it, but it's best to leave it to "False".
 
 ## Roadmap/To-do List (Always looking for contributors and help!)
 * Create a pending command, which would list accounts that are still "pending" or waiting for their account to be approved or denied.
