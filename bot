@@ -143,8 +143,14 @@ def ping(arg):
 def acs_normal(message):
     return True
 
+def wildcards_to_regex(s):
+    return re.sub(r'\\\*', '.*', re.sub(r'\\\?', '.', re.escape(s)))
+
+def wildcard_match(pattern, s):
+    return bool(re.fullmatch(wildcards_to_regex(pattern), s))
+
 def acs_admin(message):
-    return (message['userhost'] in config['admins'])
+    return any(wildcard_match(admin, message['userhost']) for admin in config['admins'])
 
 def acs_zncuser(message):
     return (message['host'] in "suchznc.net")
