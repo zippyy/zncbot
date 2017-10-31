@@ -16,5 +16,7 @@
     "zncircportisssl": "",
     "use_identify-msg": "",
     "reqchan": "",
-    "disableapproval": "False"
+    "disableapproval": "False",
+    "znchostmasks": [""],
+    "linktotos": ""
 }
